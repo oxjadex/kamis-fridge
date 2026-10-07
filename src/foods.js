@@ -72,6 +72,7 @@ export const FOODS = [
   { id: "king-oyster", name: "새송이버섯 100g", ic: "317", kc: "00", rc: "04", g: 100, kcal: 30, pro: 2.5, group: "mushroom", keys: ["새송이"] },
   { id: "enoki", name: "팽이버섯 150g", ic: "316", kc: "00", rc: "04", g: 150, kcal: 30, pro: 2.5, group: "mushroom", keys: ["팽이"] },
   { id: "rice", name: "쌀 10kg", ic: "111", kc: "10", rc: "04", g: 10000, kcal: 360, pro: 6.4, group: "grain", keys: ["쌀", "밥"] },
+  { id: "sticky-rice", name: "찹쌀 1kg", ic: "112", kc: "01", rc: "04", g: 1000, kcal: 360, pro: 7.0, group: "grain", keys: ["찹쌀"] },
   { id: "brown-rice", name: "찰현미 1kg", ic: "115", kc: "01", rc: "04", g: 1000, kcal: 350, pro: 7.0, group: "grain", keys: ["현미"] },
   { id: "barley", name: "찰보리 1kg", ic: "121", kc: "04", rc: "04", g: 1000, kcal: 340, pro: 9.0, group: "grain", keys: ["보리"] },
   { id: "soybean", name: "흰콩 500g", ic: "141", kc: "01", rc: "04", g: 500, kcal: 400, pro: 36.0, group: "nut", keys: ["콩", "메주콩", "두부"] },
