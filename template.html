@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>오늘 사도 될까? 냉장고</title>
+<title>오늘 밥상 물가</title>
 <style>
 @font-face{font-family:"Pretendard";font-weight:700;font-style:normal;font-display:block;src:url(data:font/otf;base64,__FONT_700__) format("opentype")}
 @font-face{font-family:"Pretendard";font-weight:800;font-style:normal;font-display:block;src:url(data:font/otf;base64,__FONT_800__) format("opentype")}
@@ -112,10 +112,41 @@ dialog input[type=date]{padding:8px 10px;font-size:15px}
 
 .chunky.mint{background:var(--mint)}
 .badge.price{pointer-events:auto;cursor:pointer;background:#e9fbf0}
-#shopDlg{width:min(560px,94vw)}
+#shopDlg,#menuDlg{width:min(560px,94vw)}
+.chunky.orange{background:#ffa64d}
+#menuTabs{display:flex;flex-wrap:wrap;gap:6px;margin:12px 0}
+#menuTabs button{flex:1 0 auto;border:2.5px solid var(--ink);background:#fff;border-radius:10px;padding:7px 10px;font-size:13px;cursor:pointer;box-shadow:0 2px 0 var(--ink)}
+#menuTabs button.sel{background:#ffa64d}
+#menuBody{min-height:240px}
+#menuBody h4{margin:14px 0 6px;font-size:14px;color:#7a6f86}
+.center{text-align:center}
+.mhero{display:flex;align-items:stretch;gap:8px;margin:8px 0}
+.mhero>div{flex:1;background:#fff;border:3px solid var(--ink);border-radius:14px;padding:10px 12px;display:flex;flex-direction:column;align-items:center;box-shadow:0 3px 0 var(--ink)}
+.mhero>div.vs{flex:none;background:none;border:0;box-shadow:none;justify-content:center;font-weight:800;color:#7a6f86;padding:0}
+.mhero small{font-size:11px;color:#7a6f86;text-align:center}
+.mhero b{font-size:24px;line-height:1.2}
+.mchips{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 10px}
+.mchips button{border:2px solid var(--ink);background:#fff;border-radius:999px;padding:4px 12px;font-size:12px;cursor:pointer}
+.mchips button.sel{background:var(--yellow)}
+.mrow{display:flex;align-items:center;gap:8px;width:100%;text-align:left;background:#fff;border:2.5px solid var(--ink);border-radius:12px;padding:8px 10px;margin-bottom:6px;cursor:pointer;box-shadow:0 2px 0 var(--ink);font-size:14px}
+.mrow:hover{background:#fffbe6}
+.mname{flex:1;min-width:0;display:flex;flex-direction:column}
+.mname small,.mnum small,.mgap small{font-size:11px;color:#7a6f86}
+.mnum{display:flex;flex-direction:column;align-items:flex-end;text-align:right}
+.mgap{display:flex;flex-direction:column;align-items:flex-end;min-width:64px;font-weight:800;color:#11663a}
+.mgap.lv-bad{color:#8c1d21}
+.mbar{display:grid;grid-template-columns:minmax(110px,38%) 1fr auto;align-items:center;gap:8px;font-size:13px;margin:4px 0}
+.mbar-name small{color:#7a6f86;font-size:11px}
+.mbar-track{height:12px;border:2px solid var(--ink);border-radius:999px;background:#fff;overflow:hidden;display:block}
+.mbar-track i{display:block;height:100%;background:#ffa64d}
+.mswap{display:flex;align-items:center;gap:4px;flex-wrap:wrap;background:#fff;border:2.5px dashed var(--ink);border-radius:12px;padding:8px 10px;margin-bottom:6px;font-size:13px}
+.mswap span{margin-left:auto;font-weight:800}
+.mtown{display:grid;grid-template-columns:56px 1fr auto;gap:8px;align-items:center;font-size:13px;margin:3px 0}
+.mtown.me{font-weight:800}
+.mtown.me .mbar-track i{background:var(--pink)}
 .shop-head{display:flex;align-items:center;gap:10px}
 .shop-head h3{margin:0;flex:1}
-#shopRegion,#townFood{border:3px solid var(--ink);border-radius:12px;padding:6px 10px;font-size:15px;background:#fff}
+#shopRegion,#menuRegion,#townFood{border:3px solid var(--ink);border-radius:12px;padding:6px 10px;font-size:15px;background:#fff}
 #townFood{width:100%;margin:6px 0 10px}
 #shopTabs{display:flex;flex-wrap:wrap;gap:6px;margin:12px 0}
 #shopTabs button{flex:1 0 auto;border:2.5px solid var(--ink);background:#fff;border-radius:10px;padding:7px 10px;font-size:13px;cursor:pointer;box-shadow:0 2px 0 var(--ink)}
@@ -178,7 +209,7 @@ dialog input[type=date]{padding:8px 10px;font-size:15px}
 <body>
 <div id="stage"></div>
 <div class="title">
-  <h1>오늘 사도 될까?</h1>
+  <h1>오늘 밥상 물가</h1>
   <div class="badges">
     <span class="badge"><i style="background:#ffe7a8"></i>냉장 <b id="countFr">0</b></span>
     <span class="badge"><i style="background:#bfeaff"></i>냉동 <b id="countFz">0</b></span>
@@ -199,6 +230,7 @@ dialog input[type=date]{padding:8px 10px;font-size:15px}
 </aside>
 
 <nav class="bar">
+  <button class="chunky orange" id="btnMenu">오늘 뭐 해 먹지?</button>
   <button class="chunky yellow" id="btnMemo">메모 붙이기</button>
   <button class="chunky pink" id="btnAdd">재료 넣기</button>
   <button class="chunky sky" id="btnList">목록</button>
@@ -296,6 +328,19 @@ dialog input[type=date]{padding:8px 10px;font-size:15px}
       <button class="chunky" value="close" autofocus>닫기</button>
       <button class="chunky yellow" value="edit">고치기</button>
     </div>
+  </form>
+</dialog>
+
+<dialog id="menuDlg">
+  <form method="dialog">
+    <div class="shop-head">
+      <h3>오늘 밥상 물가</h3>
+      <select id="menuRegion" aria-label="지역"></select>
+    </div>
+    <div id="menuDate" class="pnote"></div>
+    <div id="menuTabs" class="tabs"><button type="button" data-tab="board" class="sel">메뉴판</button><button type="button" data-tab="index">김치찌개 지수</button><button type="button" data-tab="kimjang">김장</button><button type="button" data-tab="fridge">냉털</button></div>
+    <div id="menuBody"></div>
+    <div class="row"><span class="sp"></span><button class="chunky" value="close">닫기</button></div>
   </form>
 </dialog>
 

@@ -7,8 +7,8 @@ export const LEVEL = {
   none: { label: "정보 없음", color: "#b9b3c4", ink: "#5a4f66" }
 };
 
-const GOOD_AT = 0.92;
-const BAD_AT = 1.08;
+export const GOOD_AT = 0.92;
+export const BAD_AT = 1.08;
 
 export const P = { today: 0, week: 1, twoWeeks: 2, month: 3, year: 4, normal: 5 };
 

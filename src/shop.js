@@ -16,7 +16,7 @@ export function currentRegion() {
   }
 }
 
-function setRegion(code) {
+export function setRegion(code) {
   try {
     localStorage.setItem(REGION_KEY, code);
   } catch (e) {}

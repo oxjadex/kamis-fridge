@@ -3,6 +3,8 @@ import { RoundedBoxGeometry } from "three/examples/jsm/geometries/RoundedBoxGeom
 import { loadPrices, LEVEL, won, pct, matchFood, quote, regionNames } from "./price.js";
 import { createShop, itemQuote, currentRegion, advice, verdict } from "./shop.js";
 import { makeBuy } from "./ledger.js";
+import { loadMenuData } from "./menu.js";
+import { createMenu } from "./menuui.js";
 
 const KEY = "fridge-toon-v2";
 const $ = (id) => document.getElementById(id);
@@ -1641,7 +1643,20 @@ $("btnShop").addEventListener("click", () => {
   shop.open();
 });
 $("priceBadge").addEventListener("click", () => shop.open("fridge"));
-loadPrices().then(() => updatePrices());
+const menu = createMenu({ getItems: () => state.items });
+$("btnMenu").addEventListener("click", () => {
+  SFX.click();
+  menu.open();
+});
+Promise.all([loadPrices(), loadMenuData()]).then(() => {
+  updatePrices();
+  let seen = false;
+  try {
+    seen = localStorage.getItem("menu-seen") === "1";
+    localStorage.setItem("menu-seen", "1");
+  } catch (e) {}
+  if (!seen || new URLSearchParams(location.search).has("menu")) menu.open();
+});
 function esc(s) {
   return String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
 }

@@ -13,6 +13,11 @@ cases = {
     "detail": "setTimeout(()=>{document.getElementById('btnShop').click();setTimeout(()=>{document.querySelector('#shopTabs [data-tab=board]').click();setTimeout(()=>document.querySelector('#shopBody [data-food='+(location.hash.slice(1)||'cabbage')+']').click(),200);},300);},1500);",
     "add": "setTimeout(()=>{document.getElementById('btnAdd').click();setTimeout(()=>{const n=document.getElementById('addName');n.value='양배추';n.dispatchEvent(new Event('input'));document.getElementById('addPaid').value='3500';},300);},1500);",
     "ledger": "setTimeout(()=>{const add=(nm,p)=>{document.getElementById('btnAdd').click();const n=document.getElementById('addName');n.value=nm;n.dispatchEvent(new Event('input'));document.getElementById('addPaid').value=p;document.getElementById('addOk').click();};add('양배추','3500');setTimeout(()=>add('삼겹살',''),1000);setTimeout(()=>add('달걀 30구','6900'),2000);setTimeout(()=>{document.getElementById('btnShop').click();setTimeout(()=>document.querySelector('#shopTabs [data-tab=ledger]').click(),300);},3500);},1500);",
+    "menu": "",
+    "mdetail": "setTimeout(()=>{document.querySelector('#menuBody [data-dish='+(location.hash.slice(1)||'kimchi-jjigae')+']').click();},2500);",
+    "mindex": "setTimeout(()=>{document.querySelector('#menuTabs [data-tab=index]').click();},2500);",
+    "mkimjang": "setTimeout(()=>{document.querySelector('#menuTabs [data-tab=kimjang]').click();},2500);",
+    "mfridge": "setTimeout(()=>{document.querySelector('#menuTabs [data-tab=fridge]').click();},2500);",
     "card": "setTimeout(()=>{__fridge.openCard('계란 30구');},1800);",
 }
 only = sys.argv[1:] or list(cases)
@@ -22,6 +27,6 @@ for name in only:
     html = src.replace("<head>", "<head>" + probe, 1).replace("</body>", tail + "</body>", 1)
     fn = f"t_{name}.html"
     open(fn, "w", encoding="utf8").write(html)
-    size = "1400,900"
+    size = os.environ.get("SIZE", "1400,900")
     subprocess.run([chrome, "--headless=new", "--enable-unsafe-swiftshader", "--use-angle=swiftshader", "--virtual-time-budget=12000", f"--window-size={size}", f"--screenshot={os.path.abspath('s_' + name + '.png')}", f"http://localhost:8765/{fn}#{os.environ.get('FOOD','')}"], capture_output=True, timeout=120)
     print(name, "done")

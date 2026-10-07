@@ -30,6 +30,7 @@ jobs:
         env:
           KAMIS_CERT_KEY: ${{ secrets.KAMIS_CERT_KEY }}
           KAMIS_CERT_ID: ${{ secrets.KAMIS_CERT_ID }}
+      - run: node scripts/dish-index.mjs
       - run: |
           git config user.name "kamis-collector"
           git config user.email "actions@users.noreply.github.com"

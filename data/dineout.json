@@ -1,0 +1,208 @@
+{
+ "month": "2026-08",
+ "source": "한국소비자원 참가격 외식비 (행정안전부 지방물가 조사, 잠정치)",
+ "url": "https://www.price.go.kr/tprice/portal/servicepriceinfo/dineoutprice/dineOutPriceList.do",
+ "units": {
+  "samgyeopsal": "200g 환산",
+  "gimbap": "1줄",
+  "default": "1인분"
+ },
+ "names": {
+  "naengmyeon": "냉면",
+  "bibimbap": "비빔밥",
+  "kimchi": "김치찌개백반",
+  "samgyeopsal": "삼겹살 200g",
+  "jajang": "자장면",
+  "samgyetang": "삼계탕",
+  "kalguksu": "칼국수",
+  "gimbap": "김밥"
+ },
+ "provinces": {
+  "서울": {
+   "naengmyeon": 12692,
+   "bibimbap": 11923,
+   "kimchi": 8769,
+   "samgyeopsal": 21321,
+   "jajang": 7731,
+   "samgyetang": 18269,
+   "kalguksu": 10038,
+   "gimbap": 3923
+  },
+  "광주": {
+   "naengmyeon": 10600,
+   "bibimbap": 10800,
+   "kimchi": 9100,
+   "samgyeopsal": 16533,
+   "jajang": 7400,
+   "samgyetang": 16800,
+   "kalguksu": 9400,
+   "gimbap": 3860
+  },
+  "대구": {
+   "naengmyeon": 11750,
+   "bibimbap": 10467,
+   "kimchi": 8583,
+   "samgyeopsal": 18470,
+   "jajang": 7167,
+   "samgyetang": 17167,
+   "kalguksu": 7583,
+   "gimbap": 3250
+  },
+  "대전": {
+   "naengmyeon": 11000,
+   "bibimbap": 10700,
+   "kimchi": 10600,
+   "samgyeopsal": 18600,
+   "jajang": 7600,
+   "samgyetang": 16800,
+   "kalguksu": 8800,
+   "gimbap": 3300
+  },
+  "부산": {
+   "naengmyeon": 12000,
+   "bibimbap": 9686,
+   "kimchi": 8429,
+   "samgyeopsal": 18175,
+   "jajang": 7000,
+   "samgyetang": 17429,
+   "kalguksu": 8071,
+   "gimbap": 3543
+  },
+  "울산": {
+   "naengmyeon": 10800,
+   "bibimbap": 11200,
+   "kimchi": 9000,
+   "samgyeopsal": 17677,
+   "jajang": 7000,
+   "samgyetang": 15800,
+   "kalguksu": 9500,
+   "gimbap": 3500
+  },
+  "인천": {
+   "naengmyeon": 11917,
+   "bibimbap": 9167,
+   "kimchi": 8667,
+   "samgyeopsal": 17685,
+   "jajang": 7083,
+   "samgyetang": 17000,
+   "kalguksu": 8833,
+   "gimbap": 3667
+  },
+  "강원": {
+   "naengmyeon": 10556,
+   "bibimbap": 10444,
+   "kimchi": 9000,
+   "samgyeopsal": 15963,
+   "jajang": 7167,
+   "samgyetang": 16556,
+   "kalguksu": 9389,
+   "gimbap": 3389
+  },
+  "경기": {
+   "naengmyeon": 10931,
+   "bibimbap": 9945,
+   "kimchi": 8841,
+   "samgyeopsal": 18197,
+   "jajang": 7586,
+   "samgyetang": 17690,
+   "kalguksu": 9810,
+   "gimbap": 3759
+  },
+  "경남": {
+   "naengmyeon": 10808,
+   "bibimbap": 9154,
+   "kimchi": 8808,
+   "samgyeopsal": 19836,
+   "jajang": 7000,
+   "samgyetang": 17231,
+   "kalguksu": 8077,
+   "gimbap": 3731
+  },
+  "경북": {
+   "naengmyeon": 10346,
+   "bibimbap": 9908,
+   "kimchi": 8923,
+   "samgyeopsal": 17306,
+   "jajang": 6846,
+   "samgyetang": 16077,
+   "kalguksu": 8462,
+   "gimbap": 3462
+  },
+  "전남": {
+   "naengmyeon": 9667,
+   "bibimbap": 9556,
+   "kimchi": 8278,
+   "samgyeopsal": 18975,
+   "jajang": 7056,
+   "samgyetang": 16556,
+   "kalguksu": 9222,
+   "gimbap": 2889
+  },
+  "전북": {
+   "naengmyeon": 10500,
+   "bibimbap": 12100,
+   "kimchi": 9550,
+   "samgyeopsal": 16300,
+   "jajang": 7200,
+   "samgyetang": 17600,
+   "kalguksu": 9300,
+   "gimbap": 3400
+  },
+  "충남": {
+   "naengmyeon": 10500,
+   "bibimbap": 10050,
+   "kimchi": 9400,
+   "samgyeopsal": 17742,
+   "jajang": 7100,
+   "samgyetang": 16200,
+   "kalguksu": 9200,
+   "gimbap": 3280
+  },
+  "충북": {
+   "naengmyeon": 9714,
+   "bibimbap": 9429,
+   "kimchi": 9714,
+   "samgyeopsal": 15305,
+   "jajang": 7000,
+   "samgyetang": 15714,
+   "kalguksu": 8857,
+   "gimbap": 3286
+  },
+  "제주": {
+   "naengmyeon": 9750,
+   "bibimbap": 10500,
+   "kimchi": 9625,
+   "samgyeopsal": 17944,
+   "jajang": 7750,
+   "samgyetang": 17000,
+   "kalguksu": 10375,
+   "gimbap": 3625
+  }
+ },
+ "regionToProvince": {
+  "1101": "서울",
+  "2100": "부산",
+  "2200": "대구",
+  "2300": "인천",
+  "2401": "광주",
+  "2501": "대전",
+  "2601": "울산",
+  "2701": "충남",
+  "3111": "경기",
+  "3112": "경기",
+  "3113": "경기",
+  "3138": "경기",
+  "3145": "경기",
+  "3211": "강원",
+  "3214": "강원",
+  "3311": "충북",
+  "3411": "충남",
+  "3511": "전북",
+  "3613": "전남",
+  "3711": "경북",
+  "3714": "경북",
+  "3814": "경남",
+  "3818": "경남",
+  "3911": "제주"
+ }
+}
