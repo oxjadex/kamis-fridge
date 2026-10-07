@@ -1,6 +1,10 @@
 name: probe
 on:
   workflow_dispatch:
+  push:
+    paths:
+      - scripts/probe.mjs
+      - .github/workflows/probe.yml
 jobs:
   probe:
     runs-on: ubuntu-latest
