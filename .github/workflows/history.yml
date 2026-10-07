@@ -6,6 +6,10 @@ on:
         description: "몇 년 치"
         required: false
         default: "3"
+      only:
+        description: "특정 품목 id만 (공백 구분)"
+        required: false
+        default: ""
   schedule:
     - cron: "0 12 * * 0"
 permissions:
@@ -22,7 +26,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - run: node scripts/history.mjs ${{ github.event.inputs.years || '3' }}
+      - run: node scripts/history.mjs ${{ github.event.inputs.years || '3' }} ${{ github.event.inputs.only }}
         env:
           KAMIS_CERT_KEY: ${{ secrets.KAMIS_CERT_KEY }}
           KAMIS_CERT_ID: ${{ secrets.KAMIS_CERT_ID }}

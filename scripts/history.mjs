@@ -1,4 +1,4 @@
-import { mkdirSync, writeFileSync, readFileSync } from "node:fs";
+import { mkdirSync, writeFileSync, readFileSync, existsSync } from "node:fs";
 import { pathToFileURL } from "node:url";
 import { join } from "node:path";
 import { call, rows, errorCode, num } from "./kamis.mjs";
@@ -29,13 +29,30 @@ function nextDay(day) {
 }
 
 async function series(food, start, end) {
+  const byDay = new Map();
+  const errors = [];
+  for (const kc of food.kcs || [food.kc]) {
+    const s = await seriesOf(food, kc, start, end);
+    if (s.error) errors.push(`${kc}:${s.error}`);
+    for (const [d, p] of s.points) {
+      const a = byDay.get(d) || [];
+      a.push(p);
+      byDay.set(d, a);
+    }
+  }
+  const points = [...byDay.entries()].map(([d, a]) => [d, Math.round(a.reduce((x, y) => x + y, 0) / a.length)]);
+  const allFailed = errors.length === (food.kcs || [food.kc]).length;
+  return allFailed ? { error: errors.join("|"), points } : { points };
+}
+
+async function seriesOf(food, kc, start, end) {
   const r = await call("periodRetailProductList", {
     p_productclscode: "01",
     p_startday: start,
     p_endday: end,
     p_itemcategorycode: CATEGORY[food.ic] || "200",
     p_itemcode: food.ic,
-    p_kindcode: food.kc,
+    p_kindcode: kc,
     p_productrankcode: food.rc,
     p_countrycode: "1101",
     p_convert_kg_yn: "N"
@@ -56,7 +73,8 @@ async function series(food, start, end) {
 
 mkdirSync("data/history", { recursive: true });
 const end = kstToday();
-const index = {};
+const prev = only.length && existsSync("data/history/index.json") ? JSON.parse(readFileSync("data/history/index.json", "utf8")).items : {};
+const index = { ...prev };
 for (const food of FOODS) {
   if (only.length && !only.includes(food.id)) continue;
   const all = new Map();

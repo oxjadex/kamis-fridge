@@ -39,11 +39,13 @@ export const isLoaded = () => store.loaded;
 function rowFor(code, food) {
   const items = store.regions[code];
   if (!items) return null;
-  return (
-    items.find((x) => x.ic === food.ic && x.kc === food.kc && x.rc === food.rc) ||
-    items.find((x) => x.ic === food.ic && x.kc === food.kc) ||
-    null
-  );
+  for (const kc of food.kcs || [food.kc]) {
+    const hit =
+      items.find((x) => x.ic === food.ic && x.kc === kc && x.rc === food.rc && x.p[P.today]) ||
+      items.find((x) => x.ic === food.ic && x.kc === kc && x.p[P.today]);
+    if (hit) return hit;
+  }
+  return items.find((x) => x.ic === food.ic && x.kc === food.kc) || null;
 }
 
 function priceRow(code, food) {
