@@ -1,5 +1,7 @@
 import * as THREE from "three";
 import { RoundedBoxGeometry } from "three/examples/jsm/geometries/RoundedBoxGeometry.js";
+import { loadPrices, LEVEL, won, pct } from "./price.js";
+import { createShop, itemQuote } from "./shop.js";
 
 const KEY = "fridge-toon-v2";
 const $ = (id) => document.getElementById(id);
@@ -335,6 +337,34 @@ function alertSprite() {
   return { bad: make("bad"), soon: make("soon") };
 }
 const ALERT_TEX = alertSprite();
+function priceSprite() {
+  const make = (level) => {
+    const c = document.createElement("canvas");
+    c.width = c.height = 128;
+    const g = c.getContext("2d");
+    g.fillStyle = LEVEL[level].color;
+    g.strokeStyle = "#2a2135";
+    g.lineWidth = 9;
+    g.beginPath();
+    g.roundRect(10, 22, 108, 84, 30);
+    g.fill();
+    g.stroke();
+    g.fillStyle = "#fff";
+    g.strokeStyle = "#2a2135";
+    g.lineWidth = 7;
+    g.font = "800 58px Pretendard, sans-serif";
+    g.textAlign = "center";
+    g.textBaseline = "middle";
+    const mark = level === "good" ? "↓" : level === "bad" ? "↑" : "₩";
+    g.strokeText(mark, 64, 66);
+    g.fillText(mark, 64, 66);
+    const t = new THREE.CanvasTexture(c);
+    t.colorSpace = THREE.SRGBColorSpace;
+    return t;
+  };
+  return { good: make("good"), ok: make("ok"), bad: make("bad") };
+}
+const PRICE_TEX = priceSprite();
 function makeAlert(size) {
   const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: ALERT_TEX.soon, transparent: true, depthWrite: false, depthTest: false }));
   s.scale.setScalar(size);
@@ -903,7 +933,10 @@ function buildItem(it) {
   const alert = makeAlert(0.085);
   alert.position.set(0.07, 0.17, 0.09);
   root.add(alert);
-  root.userData = { kind: "item", id: it.id, pivot, alert, level: 0, unit: String(it.slot).slice(0, 2), wob: 0, bounce: 0, lift: 0, liftT: 0 };
+  const tag = makeAlert(0.095);
+  tag.position.set(-0.07, 0.16, 0.09);
+  root.add(tag);
+  root.userData = { kind: "item", id: it.id, pivot, alert, tag, price: null, level: 0, unit: String(it.slot).slice(0, 2), wob: 0, bounce: 0, lift: 0, liftT: 0 };
   return root;
 }
 function placeItem(obj, slotId, instant) {
@@ -1575,7 +1608,31 @@ function updateHud() {
   $("alertBadge").hidden = !(bad || soon);
   $("alertBadge").textContent = bad ? `지남 ${bad}` : `임박 ${soon}`;
   $("alertBadge").className = bad ? "badge bad" : "badge soon";
+  updatePrices();
 }
+function updatePrices() {
+  let good = 0;
+  let dear = 0;
+  itemObjs.forEach((o, id) => {
+    const it = itemById(id);
+    const q = it ? itemQuote(it) : null;
+    const level = q && q.level !== "none" ? q.level : null;
+    o.userData.price = level;
+    if (level) o.userData.tag.material.map = PRICE_TEX[level];
+    if (level === "good") good++;
+    if (level === "bad") dear++;
+  });
+  const b = $("priceBadge");
+  b.hidden = !(good || dear);
+  b.innerHTML = `<i style="background:${LEVEL.good.color}"></i>싸요 <b>${good}</b> <i style="background:${LEVEL.bad.color}"></i>비싸요 <b>${dear}</b>`;
+}
+const shop = createShop({ getItems: () => state.items, onRegionChange: () => updatePrices() });
+$("btnShop").addEventListener("click", () => {
+  SFX.click();
+  shop.open();
+});
+$("priceBadge").addEventListener("click", () => shop.open("fridge"));
+loadPrices().then(() => updatePrices());
 function esc(s) {
   return String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
 }
@@ -1706,6 +1763,16 @@ function openCard(it) {
   $("cardExpiry").textContent = left === null ? "유통기한 안 적음" : left < 0 ? `유통기한 ${-left}일 지났어요` : left === 0 ? "오늘까지예요" : `유통기한 D-${left} (${it.expiry.replace(/-/g, ".")})`;
   $("cardExpiry").className = "line " + (left === null ? "" : left < 0 ? "bad" : left <= 2 ? "soon" : "");
   $("cardArea").textContent = AREAS[areaOf(it.slot)] || "";
+  const pq = itemQuote(it);
+  const cp = $("cardPrice");
+  cp.hidden = !pq || pq.level === "none";
+  if (pq && pq.level !== "none") {
+    cp.innerHTML = `<i class="pdot" style="background:${LEVEL[pq.level].color}"></i><b>${esc(pq.food.name)}</b> 오늘 ${won(pq.now)} · ${esc(pq.vsNormal != null ? "평년보다 " + pct(pq.vsNormal) : "")}<br><small>눌러서 대체 재료 · 지역 비교 보기</small>`;
+    cp.onclick = () => {
+      cardDlg.close();
+      shop.openFood(pq.food.id);
+    };
+  }
   cardDlg.returnValue = "";
   cardDlg.showModal();
   Preview.show($("cardPreview"), it);
@@ -2022,6 +2089,8 @@ function tick() {
       u.pivot.rotation.x = Math.sin(elapsed * 27) * 0.03 * u.wob;
     }
     u.alert.visible = u.level > 0 && !u.dragging && !!doors[u.unit] && doors[u.unit].angle > 0.9;
+    u.tag.visible = !!u.price && !u.dragging && !!doors[u.unit] && doors[u.unit].angle > 0.9;
+    if (u.tag.visible) u.tag.position.y = 0.16 + Math.abs(Math.sin(elapsed * 3 + o.id * 1.7)) * 0.012;
     if (u.alert.visible) u.alert.position.y = 0.17 + Math.abs(Math.sin(elapsed * 5 + o.id)) * 0.02;
     let sx = 1;
     let sy = 1;

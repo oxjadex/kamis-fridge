@@ -5,3 +5,4 @@ kamis.local.json
 *.png
 test_out.html
 dist/
+t_*.html

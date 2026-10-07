@@ -4,7 +4,8 @@ import { existsSync, readFileSync, writeFileSync } from "node:fs";
 const out = process.argv[2];
 const fontDir = process.env.LOCALAPPDATA + "\\Microsoft\\Windows\\Fonts\\";
 const sync = existsSync("sync.json") ? JSON.parse(readFileSync("sync.json", "utf8")) : {};
-const seed = process.argv.includes("--seed") && existsSync("seed.json") ? readFileSync("seed.json", "utf8") : "[]";
+const seedFile = process.argv.includes("--seed") && existsSync("seed.json") ? "seed.json" : existsSync("demo-seed.json") ? "demo-seed.json" : null;
+const seed = seedFile ? readFileSync(seedFile, "utf8") : "[]";
 const result = await build({ entryPoints: ["src/main.js"], bundle: true, format: "iife", minify: true, write: false, target: "es2020" });
 const js = result.outputFiles[0].text
   .replace(/<\/script/gi, "<\\/script")
