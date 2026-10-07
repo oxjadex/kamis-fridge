@@ -1,7 +1,8 @@
 import * as THREE from "three";
 import { RoundedBoxGeometry } from "three/examples/jsm/geometries/RoundedBoxGeometry.js";
-import { loadPrices, LEVEL, won, pct } from "./price.js";
-import { createShop, itemQuote } from "./shop.js";
+import { loadPrices, LEVEL, won, pct, matchFood, quote, regionNames } from "./price.js";
+import { createShop, itemQuote, currentRegion, advice, verdict } from "./shop.js";
+import { makeBuy } from "./ledger.js";
 
 const KEY = "fridge-toon-v2";
 const $ = (id) => document.getElementById(id);
@@ -1626,7 +1627,15 @@ function updatePrices() {
   b.hidden = !(good || dear);
   b.innerHTML = `<i style="background:${LEVEL.good.color}"></i>싸요 <b>${good}</b> <i style="background:${LEVEL.bad.color}"></i>비싸요 <b>${dear}</b>`;
 }
-const shop = createShop({ getItems: () => state.items, onRegionChange: () => updatePrices() });
+const shop = createShop({
+  getItems: () => state.items,
+  getBuys: () => state.buys || [],
+  removeBuy: (id) => {
+    state.buys = (state.buys || []).filter((b) => b.id !== id);
+    save();
+  },
+  onRegionChange: () => updatePrices()
+});
 $("btnShop").addEventListener("click", () => {
   SFX.click();
   shop.open();
@@ -1845,6 +1854,9 @@ function openEditor(it) {
   $("addDate").value = it && it.added ? it.added : today();
   $("addExpiry").value = it && it.expiry ? it.expiry : "";
   $("whereRow").hidden = !!it;
+  $("addPaid").value = "";
+  $("addLog").checked = true;
+  refreshPriceHint();
   addDlg.returnValue = "";
   swatch("pickExpiry", "v", "");
   if (it && it.kind === "custom" && it.design) Object.assign(draft, it.design, { useDesign: true });
@@ -1853,6 +1865,29 @@ function openEditor(it) {
   refreshPreview();
   if (!it) setTimeout(() => $("addName").focus(), 40);
 }
+function addMatch() {
+  if (editingItem) return null;
+  const f = matchFood($("addName").value.trim());
+  if (!f) return null;
+  const q = quote(f, currentRegion());
+  return q.level === "none" ? null : { f, q };
+}
+function refreshPriceHint() {
+  const m = addMatch();
+  $("addPriceRow").hidden = !m;
+  if (!m) return;
+  const { f, q } = m;
+  $("addPriceHint").innerHTML = "";
+  const dot = document.createElement("i");
+  dot.className = "pdot";
+  dot.style.background = LEVEL[q.level].color;
+  const b = document.createElement("b");
+  b.textContent = ` ${f.name} 오늘 ${won(q.now)}`;
+  const rest = document.createElement("span");
+  rest.textContent = `${q.unit && !f.name.includes(q.unit) ? ` (${q.unit})` : ""} · ${advice(q)} · ${verdict(q)}`;
+  $("addPriceHint").append(dot, b, rest);
+}
+$("addName").addEventListener("input", refreshPriceHint);
 $("btnAdd").addEventListener("click", () => {
   SFX.click();
   openEditor(null);
@@ -1888,6 +1923,19 @@ addDlg.addEventListener("close", () => {
   }
   const it = { id: `i${state.next++}`, ...fields, kind: "custom", design, slot: slotId };
   state.items.push(it);
+  const m = addMatch();
+  if (m && $("addLog").checked) {
+    state.buys = state.buys || [];
+    state.buys.push(makeBuy({
+      id: `b${state.next++}`,
+      date: fields.added,
+      food: m.f,
+      name,
+      q: m.q,
+      paid: Number($("addPaid").value) || 0,
+      regionName: regionNames()[m.q.region] || ""
+    }));
+  }
   const o = buildItem(it);
   itemObjs.set(it.id, o);
   placeItem(o, slotId, true);

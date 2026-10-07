@@ -77,7 +77,7 @@ dialog[open]{animation:dlgPop .35s cubic-bezier(.34,1.56,.64,1)}
 dialog::backdrop{background:rgba(42,33,53,.35)}
 dialog h3{margin:0 0 12px;font-size:22px;font-weight:800}
 dialog label.cap{display:block;font-size:13px;color:#7a6f86;margin:14px 0 6px}
-dialog input[type=text],dialog input[type=date],dialog input[type=email],dialog input[type=password],dialog textarea{width:100%;border:3px solid var(--ink);border-radius:12px;padding:10px 12px;font-size:16px;outline:none;background:#fff}
+dialog input[type=text],dialog input[type=date],dialog input[type=number],dialog input[type=email],dialog input[type=password],dialog textarea{width:100%;border:3px solid var(--ink);border-radius:12px;padding:10px 12px;font-size:16px;outline:none;background:#fff}
 dialog textarea{height:120px;resize:none;line-height:1.45}
 .sw{display:flex;flex-wrap:wrap;gap:8px}
 .sw button{width:34px;height:34px;border-radius:50%;border:3px solid var(--ink);cursor:pointer;box-shadow:0 3px 0 var(--ink)}
@@ -117,8 +117,8 @@ dialog input[type=date]{padding:8px 10px;font-size:15px}
 .shop-head h3{margin:0;flex:1}
 #shopRegion,#townFood{border:3px solid var(--ink);border-radius:12px;padding:6px 10px;font-size:15px;background:#fff}
 #townFood{width:100%;margin:6px 0 10px}
-#shopTabs{display:flex;gap:6px;margin:12px 0}
-#shopTabs button{flex:1;border:2.5px solid var(--ink);background:#fff;border-radius:10px;padding:7px 0;font-size:13px;cursor:pointer;box-shadow:0 2px 0 var(--ink)}
+#shopTabs{display:flex;flex-wrap:wrap;gap:6px;margin:12px 0}
+#shopTabs button{flex:1 0 auto;border:2.5px solid var(--ink);background:#fff;border-radius:10px;padding:7px 10px;font-size:13px;cursor:pointer;box-shadow:0 2px 0 var(--ink)}
 #shopTabs button.sel{background:var(--mint)}
 #shopBody{min-height:240px}
 #shopBody h4{margin:14px 0 6px;font-size:14px;color:#7a6f86}
@@ -133,6 +133,15 @@ dialog input[type=date]{padding:8px 10px;font-size:15px}
 .spark polyline{fill:none;stroke:var(--ink);stroke-width:2;stroke-linejoin:round}
 .spark circle{fill:var(--pink);stroke:var(--ink);stroke-width:1.4}
 .psum{font-size:14px;line-height:1.5;margin:4px 0 10px}
+.addhint{margin:8px 0 0;padding:8px 10px;border:2.5px solid var(--ink);border-radius:12px;background:#fff;font-size:13px;line-height:1.45}
+.pgrid.ledger{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:10px 0}
+.pgrid.ledger b{font-size:18px}
+#addPriceRow .two>div:last-child{display:flex;align-items:flex-end;padding-bottom:12px}
+.lrow{display:flex;align-items:center;gap:8px;padding:8px 4px;border-bottom:2px dashed #e3dcea}
+.lrow .pname{flex:1;display:flex;flex-direction:column;cursor:pointer}
+.lrow .pname small,.lrow .pnum small{font-size:11px;color:#7a6f86}
+.lrow .pnum{display:flex;flex-direction:column;align-items:flex-end;text-align:right}
+.ldel{border:0;background:none;font-size:18px;color:#7a6f86;cursor:pointer;padding:0 4px}
 .pnote{font-size:12px;color:#7a6f86;line-height:1.5}
 .pcard{background:#fff8ec;border:2.5px dashed #d8cbb8;border-radius:14px;padding:8px;margin-bottom:10px}
 .pcard-top{display:flex;align-items:center;gap:6px}
@@ -231,6 +240,13 @@ dialog input[type=date]{padding:8px 10px;font-size:15px}
       <div><label class="cap" for="addName">이름</label><input id="addName" type="text" maxlength="16" required placeholder="예) 구운소금"></div>
       <div><label class="cap" for="addQty">양</label><input id="addQty" type="text" maxlength="16" placeholder="예) 5개"></div>
     </div>
+    <div id="addPriceRow" hidden>
+      <p id="addPriceHint" class="addhint"></p>
+      <div class="two">
+        <div><label class="cap" for="addPaid">산 값 (안 적어도 돼요)</label><input id="addPaid" type="number" inputmode="numeric" min="0" max="10000000" step="10" placeholder="예) 3500"></div>
+        <div><label class="cap"><input id="addLog" type="checkbox" checked> 장보기 기록에 남기기</label></div>
+      </div>
+    </div>
     <div id="whereRow">
       <label class="cap">어디에</label>
       <div class="opt">
@@ -290,7 +306,7 @@ dialog input[type=date]{padding:8px 10px;font-size:15px}
       <select id="shopRegion" aria-label="지역"></select>
     </div>
     <div id="shopDate" class="pnote"></div>
-    <div id="shopTabs"><button type="button" data-tab="fridge" class="sel">내 냉장고</button><button type="button" data-tab="board">오늘 시세</button><button type="button" data-tab="protein">단백질 가성비</button><button type="button" data-tab="town">우리 동네</button></div>
+    <div id="shopTabs"><button type="button" data-tab="fridge" class="sel">내 냉장고</button><button type="button" data-tab="board">오늘 시세</button><button type="button" data-tab="protein">단백질 가성비</button><button type="button" data-tab="town">우리 동네</button><button type="button" data-tab="ledger">장보기 기록</button></div>
     <div id="shopBody"></div>
     <div class="row"><span class="sp"></span><button class="chunky" value="close">닫기</button></div>
   </form>

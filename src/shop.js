@@ -2,6 +2,7 @@ import {
   LEVEL, P, FOODS, quote, pct, won, matchFood, substitutes, board, proteinRanking,
   regionCompare, groupLabel, priceDate, regionNames, isLoaded
 } from "./price.js";
+import { ledgerSummary } from "./ledger.js";
 import { loadHistory, seasonality, percentile, forecastText, seasonBars, yearLine } from "./season.js";
 
 const REGION_KEY = "kamis-region";
@@ -43,13 +44,13 @@ function spark(series) {
   return `<svg class="spark" viewBox="0 0 60 24"><polyline points="${pts.join(" ")}"/><circle cx="${pts[pts.length - 1].split(",")[0]}" cy="${pts[pts.length - 1].split(",")[1]}" r="2.6"/></svg>`;
 }
 
-function verdict(q) {
+export function verdict(q) {
   if (q.level === "none") return "오늘 가격 정보가 없어요";
   const ref = q.vsNormal != null ? `평년보다 ${pct(q.vsNormal)}` : q.vsMonth != null ? `지난달보다 ${pct(q.vsMonth)}` : "";
   return ref;
 }
 
-function advice(q) {
+export function advice(q) {
   if (q.level === "good") return "지금 사면 좋아요";
   if (q.level === "bad") return "급하지 않으면 미뤄요";
   if (q.level === "ok") return "평소 가격이에요";
@@ -120,6 +121,29 @@ function proteinTab(code) {
     </button>`).join("");
 }
 
+function ledgerTab(buys) {
+  if (!buys.length) return `<p class="empty">아직 기록이 없어요. 재료를 넣을 때 KAMIS 품목과 이어지면 그날 시세가 자동으로 남아요.</p>`;
+  const s = ledgerSummary(buys);
+  const diff = s.saved >= 0 ? `<b class="lv-good">${won(s.saved)} 덜</b>` : `<b class="lv-bad">${won(-s.saved)} 더</b>`;
+  let html = `<p class="psum">${s.count}번 샀어요 · 평년 시세로 샀을 때보다 ${diff} 썼어요.</p>
+    <div class="pgrid ledger">
+      <div><small>초록불에 산 것</small><b class="lv-good">${s.by.good}번</b></div>
+      <div><small>노란불</small><b class="lv-ok">${s.by.ok}번</b></div>
+      <div><small>빨간불</small><b class="lv-bad">${s.by.bad}번</b></div>
+    </div>
+    ${s.paidCount ? `<p class="pnote">직접 적은 산 값 합계 ${won(s.paid)} (${s.paidCount}건)</p>` : ""}`;
+  for (const b of [...buys].reverse()) {
+    const d = b.normal ? b.normal - b.now : null;
+    html += `<div class="lrow">
+      ${dot(b.level)}
+      <span class="pname" data-food="${esc(b.food)}">${esc(b.name)}<small>${esc(b.d)} · ${esc(b.regionName || "")}</small></span>
+      <span class="pnum"><b>${won(b.now)}</b><small>${d == null ? "" : d >= 0 ? `평년보다 ${won(d)} 쌌어요` : `평년보다 ${won(-d)} 비쌌어요`}${b.paid ? ` · 산 값 ${won(b.paid)}` : ""}</small></span>
+      <button type="button" class="ldel" data-del="${esc(b.id)}" aria-label="기록 지우기">×</button>
+    </div>`;
+  }
+  return html;
+}
+
 function townTab(foodId, items) {
   const foods = FOODS.filter((f) => regionCompare(f).length > 1);
   const mine = items.map((it) => matchFood(it.name, it.kind)).filter(Boolean);
@@ -184,13 +208,17 @@ async function fillSeason(el, foodId, code) {
   const season = seasonality(h.points);
   const fc = forecastText(season, month);
   const rk = percentile(h.points, q.now, today);
+  const clash =
+    rk && q.level === "good" && rk.rank >= 0.8 ? "평년보다는 싸지만 최근 1년 중엔 비싼 편이에요. 요 몇 달 값이 내려와 있었으니 급하지 않으면 조금 기다려 봐요." :
+    rk && q.level === "bad" && rk.rank <= 0.2 ? "평년보다는 비싸지만 최근 1년 중엔 싼 편이에요. 값이 한동안 높았던 품목이라 지금이 그나마 나은 때예요." : "";
   el.innerHTML = `<h4>살 타이밍 예보</h4>
     ${fc ? `<p class="psum">${esc(fc.text)}</p>` : ""}
     ${season && !fc.flat ? `${seasonBars(season, month)}<p class="pnote">달마다 그 앞뒤 1년 평균과 견준 값이에요 (${season.years}년치, 서울 평균). 초록이 제일 싼 달.</p>` : ""}
-    ${rk ? `<p class="psum">오늘 ${won(q.now)}은 ${rankText(rk)} · 1년 최저 ${won(rk.min)} / 최고 ${won(rk.max)}</p>${yearLine(h.points, rk.from, q.now)}` : ""}`;
+    ${rk ? `<p class="psum">오늘 ${won(q.now)}은 ${rankText(rk)} · 1년 최저 ${won(rk.min)} / 최고 ${won(rk.max)}</p>${yearLine(h.points, rk.from, q.now)}` : ""}
+    ${clash ? `<p class="padvice lv-ok">${clash}</p>` : ""}`;
 }
 
-export function createShop({ getItems, onRegionChange }) {
+export function createShop({ getItems, getBuys, removeBuy, onRegionChange }) {
   const dlg = document.getElementById("shopDlg");
   const body = document.getElementById("shopBody");
   const sel = document.getElementById("shopRegion");
@@ -224,6 +252,7 @@ export function createShop({ getItems, onRegionChange }) {
       tab === "fridge" ? fridgeTab(items, code) :
       tab === "board" ? boardTab(code) :
       tab === "protein" ? proteinTab(code) :
+      tab === "ledger" ? ledgerTab(getBuys()) :
       townTab(town, items);
     const tf = document.getElementById("townFood");
     if (tf) tf.addEventListener("change", () => { town = tf.value; render(); });
@@ -237,6 +266,12 @@ export function createShop({ getItems, onRegionChange }) {
     render();
   });
   body.addEventListener("click", (e) => {
+    const del = e.target.closest("[data-del]");
+    if (del) {
+      removeBuy(del.dataset.del);
+      render();
+      return;
+    }
     if (e.target.closest("[data-back]")) {
       focus = null;
       render();
