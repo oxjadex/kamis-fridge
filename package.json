@@ -1,0 +1,1 @@
+{"name":"fridge3d","private":true,"version":"1.0.0","type":"module","dependencies":{"esbuild":"^0.24.0","three":"^0.169.0"}}

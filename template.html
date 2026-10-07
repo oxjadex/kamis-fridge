@@ -1,0 +1,260 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>냉장고</title>
+<style>
+@font-face{font-family:"Pretendard";font-weight:700;font-style:normal;font-display:block;src:url(data:font/otf;base64,__FONT_700__) format("opentype")}
+@font-face{font-family:"Pretendard";font-weight:800;font-style:normal;font-display:block;src:url(data:font/otf;base64,__FONT_800__) format("opentype")}
+:root{--ink:#2a2135;--yellow:#ffd23f;--pink:#ff6b8b;--sky:#5ec8ff;--mint:#7ee0a3;--paper:#fffaf0}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;overflow:hidden;background:#fff;font-family:"Pretendard","Malgun Gothic",sans-serif;font-weight:700;color:var(--ink);-webkit-font-smoothing:antialiased;user-select:none}
+button,input,textarea,select{font-family:inherit;font-weight:700;color:inherit}
+[hidden]{display:none!important}
+#stage{position:fixed;inset:0}
+#stage canvas{display:block;touch-action:none}
+
+.title{position:fixed;left:22px;top:18px;display:flex;align-items:center;gap:12px;pointer-events:none}
+.title h1{margin:0;font-size:34px;font-weight:800;letter-spacing:-1px;color:#fff;-webkit-text-stroke:0;text-shadow:3px 0 0 var(--ink),-3px 0 0 var(--ink),0 3px 0 var(--ink),0 -3px 0 var(--ink),2px 2px 0 var(--ink),-2px -2px 0 var(--ink),2px -2px 0 var(--ink),-2px 2px 0 var(--ink),0 7px 0 var(--ink);transform:rotate(-3deg)}
+.badges{display:flex;gap:6px;transform:rotate(-3deg)}
+.badge{background:#fff;border:3px solid var(--ink);border-radius:12px;padding:3px 9px;font-size:14px;box-shadow:0 3px 0 var(--ink);display:flex;gap:5px;align-items:center}
+.badge b{font-weight:800;font-size:16px}
+.badge i{width:10px;height:10px;border-radius:50%;border:2px solid var(--ink);display:inline-block}
+
+.bar{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);display:flex;gap:10px}
+.chunky{border:3px solid var(--ink);border-radius:16px;padding:11px 18px 12px;font-size:16px;font-weight:800;cursor:pointer;box-shadow:0 5px 0 var(--ink);transition:transform .08s,box-shadow .08s;white-space:nowrap;background:#fff}
+.chunky:hover{transform:translateY(-2px) rotate(-1.5deg);box-shadow:0 7px 0 var(--ink)}
+.chunky:active{transform:translateY(4px);box-shadow:0 1px 0 var(--ink)}
+.chunky.yellow{background:var(--yellow)}
+.chunky.pink{background:var(--pink);color:#fff}
+.chunky.sky{background:var(--sky)}
+
+#hint{position:fixed;left:50%;top:76px;transform:translateX(-50%) rotate(1.5deg);background:#fff;border:3px solid var(--ink);box-shadow:0 4px 0 var(--ink);font-size:14px;padding:8px 16px;border-radius:14px;transition:opacity .5s,transform .5s;pointer-events:none;white-space:nowrap}
+#hint.gone{opacity:0;transform:translateX(-50%) translateY(-20px)}
+#tip{position:fixed;pointer-events:none;background:#fff;border:3px solid var(--ink);border-radius:12px;padding:5px 11px;font-size:15px;font-weight:800;white-space:nowrap;transform:translate(-50%,-100%);box-shadow:0 3px 0 var(--ink);z-index:5;animation:tipPop .18s ease-out}
+#tip::after{content:"";position:absolute;left:50%;bottom:-9px;width:12px;height:12px;background:#fff;border-right:3px solid var(--ink);border-bottom:3px solid var(--ink);transform:translateX(-50%) rotate(45deg)}
+@keyframes tipPop{from{transform:translate(-50%,-80%) scale(.6)}to{transform:translate(-50%,-100%) scale(1)}}
+
+#panel{position:fixed;right:16px;top:16px;bottom:96px;width:290px;background:var(--paper);border:3px solid var(--ink);border-radius:20px;box-shadow:0 6px 0 var(--ink);padding:16px;transform:translateX(calc(100% + 80px)) rotate(4deg);visibility:hidden;transition:transform .45s cubic-bezier(.34,1.56,.64,1),visibility 0s .45s;display:flex;flex-direction:column}
+#panel.open{transform:none;visibility:visible;transition:transform .45s cubic-bezier(.34,1.56,.64,1),visibility 0s}
+#panel h2{margin:0 0 10px;font-size:20px;font-weight:800}
+#search{width:100%;border:3px solid var(--ink);background:#fff;border-radius:12px;padding:8px 12px;font-size:15px;outline:none;margin-bottom:12px}
+#list{overflow:auto;flex:1;padding-right:4px}
+#list section{margin-bottom:12px}
+#list h3{margin:0 0 6px;font-size:13px;font-weight:700;color:#7a6f86}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chips button{border:2.5px solid var(--ink);background:#fff;border-radius:999px;padding:4px 11px;font-size:14px;cursor:pointer;box-shadow:0 2px 0 var(--ink)}
+.chips button:hover{background:var(--yellow);transform:translateY(-1px)}
+.empty{color:#7a6f86}
+#sortTabs{display:flex;gap:6px;margin-bottom:10px}
+#sortTabs button{flex:1;border:2.5px solid var(--ink);background:#fff;border-radius:10px;padding:5px 0;font-size:13px;cursor:pointer;box-shadow:0 2px 0 var(--ink)}
+#sortTabs button.sel{background:var(--sky)}
+.chips em{font-style:normal;font-size:11px;font-weight:800;margin-left:5px;padding:1px 6px;border-radius:999px;background:#eee6f5;vertical-align:1px}
+.chips em.soon{background:#ffb020;color:#fff}
+.chips em.bad{background:#ff4d5e;color:#fff}
+.chips em.old{background:#e8e1ef;color:#7a6f86}
+.badge.soon{background:#ffb020;color:#fff}
+.badge.bad{background:#ff4d5e;color:#fff}
+#alertBadge{pointer-events:auto;cursor:pointer;animation:bob 1.2s ease-in-out infinite}
+@keyframes bob{50%{transform:translateY(-3px)}}
+.tools{position:fixed;right:16px;bottom:22px;display:flex;gap:8px}
+.round{width:46px;height:46px;border-radius:50%;border:3px solid var(--ink);background:#fff;box-shadow:0 4px 0 var(--ink);cursor:pointer;display:grid;place-items:center;padding:0}
+.round:active{transform:translateY(3px);box-shadow:0 1px 0 var(--ink)}
+.round svg{width:24px;height:24px;stroke:var(--ink);stroke-width:2.6;fill:none;stroke-linecap:round;stroke-linejoin:round}
+#btnSound.off .wave{display:none}
+#btnSound:not(.off) .mute{display:none}
+#btnSync{position:relative}
+#btnSync::after{content:"";position:absolute;right:-2px;top:-2px;width:12px;height:12px;border-radius:50%;border:2.5px solid var(--ink);background:#cfc6d8}
+body[data-sync=on] #btnSync::after{background:var(--mint)}
+body[data-sync=err] #btnSync::after{background:#ff4d5e}
+body[data-sync=none] #btnSync::after{display:none}
+#btnReset{margin-top:10px;background:none;border:0;color:#9a8fa6;font-size:13px;cursor:pointer;text-decoration:underline}
+
+dialog{border:3px solid var(--ink);border-radius:22px;padding:20px;width:min(400px,92vw);max-height:92vh;overflow:auto;background:var(--paper);box-shadow:0 8px 0 var(--ink)}
+dialog[open]{animation:dlgPop .35s cubic-bezier(.34,1.56,.64,1)}
+@keyframes dlgPop{from{transform:scale(.7) rotate(-4deg);opacity:0}to{transform:none;opacity:1}}
+dialog::backdrop{background:rgba(42,33,53,.35)}
+dialog h3{margin:0 0 12px;font-size:22px;font-weight:800}
+dialog label.cap{display:block;font-size:13px;color:#7a6f86;margin:14px 0 6px}
+dialog input[type=text],dialog input[type=date],dialog input[type=email],dialog input[type=password],dialog textarea{width:100%;border:3px solid var(--ink);border-radius:12px;padding:10px 12px;font-size:16px;outline:none;background:#fff}
+dialog textarea{height:120px;resize:none;line-height:1.45}
+.sw{display:flex;flex-wrap:wrap;gap:8px}
+.sw button{width:34px;height:34px;border-radius:50%;border:3px solid var(--ink);cursor:pointer;box-shadow:0 3px 0 var(--ink)}
+.sw button.sel{transform:translateY(-3px) scale(1.1);box-shadow:0 6px 0 var(--ink)}
+.opt{display:flex;flex-wrap:wrap;gap:6px}
+.opt button,.opt label{border:2.5px solid var(--ink);background:#fff;border-radius:12px;padding:6px 11px;font-size:14px;cursor:pointer;box-shadow:0 3px 0 var(--ink)}
+.opt button.sel,.opt label:has(input:checked){background:var(--yellow)}
+.opt input{display:none}
+.row{display:flex;align-items:center;gap:10px;margin-top:18px}
+.row .sp{flex:1}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+dialog input[type=date]{padding:8px 10px;font-size:15px}
+.preview{height:170px;border:3px solid var(--ink);border-radius:16px;background:#fff;overflow:hidden;margin:4px 0 2px}
+.preview canvas{display:block}
+.sw.small button{width:28px;height:28px}
+.opt.tight button{padding:5px 9px;font-size:13px}
+.opt.mini button{padding:3px 8px;font-size:12px;box-shadow:0 2px 0 var(--ink)}
+#cardDlg h3{margin:12px 0 2px}
+#cardQty{color:#7a6f86;font-size:15px}
+.line{margin-top:8px;font-size:15px}
+.line.soon{color:#e08a00}
+.line.bad{color:#e0435f}
+#cardArea{display:inline-block;margin-top:10px;font-size:12px;padding:3px 9px;border:2px solid var(--ink);border-radius:999px;background:#fff}
+.guide{font-size:14px;line-height:1.6;color:#5a4f66}
+#syncMsg{min-height:20px;margin-top:10px;font-size:14px;color:#e0435f}
+.linkbtn{background:none;border:0;color:#e0435f;font-size:15px;cursor:pointer;padding:0}
+
+#toast{position:fixed;left:50%;bottom:96px;transform:translateX(-50%) translateY(20px) scale(.8);opacity:0;transition:.3s cubic-bezier(.34,1.56,.64,1);background:#fff;border:3px solid var(--ink);border-radius:14px;box-shadow:0 4px 0 var(--ink);padding:9px 10px 9px 16px;font-size:15px;display:flex;align-items:center;gap:10px;pointer-events:none}
+#toast.show{opacity:1;transform:translateX(-50%);pointer-events:auto}
+#undo{border:2.5px solid var(--ink);background:var(--yellow);border-radius:10px;padding:5px 10px;font-size:14px;font-weight:800;cursor:pointer;box-shadow:0 2px 0 var(--ink)}
+@media (max-width:640px){.tools{top:70px;bottom:auto;right:12px;flex-direction:column}.round{width:40px;height:40px}.bar{bottom:14px}.title h1{font-size:26px}.badge{font-size:12px;padding:2px 7px}.chunky{padding:9px 12px 10px;font-size:14px}#hint{white-space:normal;width:88vw;text-align:center}}
+</style>
+</head>
+<body>
+<div id="stage"></div>
+<div class="title">
+  <h1>냉장고</h1>
+  <div class="badges">
+    <span class="badge"><i style="background:#ffe7a8"></i>냉장 <b id="countFr">0</b></span>
+    <span class="badge"><i style="background:#bfeaff"></i>냉동 <b id="countFz">0</b></span>
+    <span class="badge"><i style="background:#f2c28a"></i>실온 <b id="countPt">0</b></span>
+    <span class="badge soon" id="alertBadge" hidden></span>
+  </div>
+</div>
+<div id="hint">문을 톡 누르거나 끌어서 열기 · 빈 곳을 끌어서 둘러보기 · 재료를 톡 누르면 정보, 바닥에 놓으면 먹기</div>
+<div id="tip" hidden></div>
+
+<aside id="panel">
+  <h2>뭐가 있나</h2>
+  <input id="search" type="search" placeholder="찾기" autocomplete="off">
+  <div id="sortTabs"><button class="sel" data-sort="area">칸별</button><button data-sort="expiry">유통기한</button><button data-sort="added">오래된 순</button></div>
+  <div id="list"></div>
+  <button id="btnReset">처음 상태로 되돌리기</button>
+</aside>
+
+<nav class="bar">
+  <button class="chunky yellow" id="btnMemo">메모 붙이기</button>
+  <button class="chunky pink" id="btnAdd">재료 넣기</button>
+  <button class="chunky sky" id="btnList">목록</button>
+</nav>
+
+<div class="tools">
+  <button class="round" id="btnSound" title="소리 끄기"><svg viewBox="0 0 24 24"><path d="M4 9h4l5-4v14l-5-4H4z"/><path class="wave" d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12"/><path class="mute" d="M17 9l5 6M22 9l-5 6"/></svg></button>
+  <button class="round" id="btnSync" title="폰이랑 같이 보기"><svg viewBox="0 0 24 24"><path d="M20 12a8 8 0 0 1-14 5.3"/><path d="M4 12a8 8 0 0 1 14-5.3"/><path d="M18 3v4h-4M6 21v-4h4"/></svg></button>
+</div>
+
+<div id="toast"><span id="toastText"></span><button id="undo" hidden>되돌리기</button></div>
+
+<dialog id="memoDlg">
+  <form method="dialog">
+    <h3 id="memoTitle">메모 쓰기</h3>
+    <textarea id="memoText" maxlength="60" placeholder="예) 이번 주 저녁은 카레!"></textarea>
+    <label class="cap">종이 색</label>
+    <div class="sw" id="memoColors">
+      <button type="button" data-color="yellow" style="background:#ffe45c"></button>
+      <button type="button" data-color="pink" style="background:#ff9ec0"></button>
+      <button type="button" data-color="sky" style="background:#8fd3ff"></button>
+      <button type="button" data-color="green" style="background:#a6ec7a"></button>
+    </div>
+    <div class="row">
+      <button type="button" class="linkbtn" id="memoRemove" hidden>떼서 버리기</button>
+      <span class="sp"></span>
+      <button class="chunky" value="cancel" formnovalidate>취소</button>
+      <button class="chunky yellow" value="ok">붙이기</button>
+    </div>
+  </form>
+</dialog>
+
+<dialog id="addDlg">
+  <form method="dialog">
+    <h3 id="addTitle">재료 넣기</h3>
+    <div class="preview" id="addPreview"></div>
+    <div class="two">
+      <div><label class="cap" for="addName">이름</label><input id="addName" type="text" maxlength="16" required placeholder="예) 구운소금"></div>
+      <div><label class="cap" for="addQty">양</label><input id="addQty" type="text" maxlength="16" placeholder="예) 5개"></div>
+    </div>
+    <div id="whereRow">
+      <label class="cap">어디에</label>
+      <div class="opt">
+        <label><input type="radio" name="where" value="fr" checked>냉장실</label>
+        <label><input type="radio" name="where" value="frd">냉장실 문</label>
+        <label><input type="radio" name="where" value="fz">냉동실</label>
+        <label><input type="radio" name="where" value="fzd">냉동실 문</label>
+        <label><input type="radio" name="where" value="pt">실온 장</label>
+      </div>
+    </div>
+    <label class="cap">용기</label>
+    <div class="opt tight" id="pickContainer"></div>
+    <button type="button" class="linkbtn" id="keepShape" hidden style="margin-top:8px;color:#5a4f66">원래 모양 그대로 두기</button>
+    <label class="cap">용기 색</label>
+    <div class="sw small" id="pickCColor"></div>
+    <label class="cap">내용물</label>
+    <div class="opt tight" id="pickContent"></div>
+    <label class="cap">내용물 색</label>
+    <div class="sw small" id="pickFColor"></div>
+    <label class="cap">크기</label>
+    <div class="opt tight" id="pickSize"><button type="button" data-v="s">작게</button><button type="button" data-v="m">보통</button><button type="button" data-v="l">크게</button></div>
+    <div class="two">
+      <div><label class="cap" for="addDate">넣은 날</label><input id="addDate" type="date"></div>
+      <div><label class="cap" for="addExpiry">유통기한</label><input id="addExpiry" type="date"></div>
+    </div>
+    <div class="opt mini" id="pickExpiry" style="margin-top:8px"><button type="button" data-v="3">+3일</button><button type="button" data-v="7">+1주</button><button type="button" data-v="30">+1달</button><button type="button" data-v="180">+6달</button><button type="button" data-v="none">없음</button></div>
+    <div class="row">
+      <span class="sp"></span>
+      <button class="chunky" value="cancel" formnovalidate>취소</button>
+      <button class="chunky pink" value="ok" id="addOk">넣기</button>
+    </div>
+  </form>
+</dialog>
+
+<dialog id="cardDlg">
+  <form method="dialog">
+    <div class="preview" id="cardPreview"></div>
+    <h3 id="cardName"></h3>
+    <div id="cardQty"></div>
+    <div class="line" id="cardAdded"></div>
+    <div class="line" id="cardExpiry"></div>
+    <span id="cardArea"></span>
+    <div class="row">
+      <button class="linkbtn" value="eat">다 먹었어요</button>
+      <span class="sp"></span>
+      <button class="chunky" value="close" autofocus>닫기</button>
+      <button class="chunky yellow" value="edit">고치기</button>
+    </div>
+  </form>
+</dialog>
+
+<dialog id="syncDlg">
+  <form method="dialog">
+    <h3>폰이랑 같이 보기</h3>
+    <div id="syncSetup">
+      <p class="guide">아직 온라인 저장소가 연결되지 않았어요. 연결되면 여기서 로그인해서 폰과 노트북이 같은 냉장고를 봐요.</p>
+      <div class="row"><span class="sp"></span><button class="chunky" value="close">닫기</button></div>
+    </div>
+    <div id="syncLogin">
+      <label class="cap" for="syncId">이메일</label>
+      <input id="syncId" type="email" autocomplete="username">
+      <label class="cap" for="syncPw">비밀번호</label>
+      <input id="syncPw" type="password" autocomplete="current-password">
+      <div id="syncMsg"></div>
+      <div class="row">
+        <button type="button" class="linkbtn" id="syncSignupBtn" style="color:#5a4f66">처음이면 가입</button>
+        <span class="sp"></span>
+        <button class="chunky" value="close" formnovalidate>닫기</button>
+        <button type="button" class="chunky sky" id="syncLoginBtn">로그인</button>
+      </div>
+    </div>
+    <div id="syncDone">
+      <p class="guide"><b id="syncEmail"></b> 로 로그인했어요.<br>상태: <b id="syncState">동기화 중</b></p>
+      <div class="row">
+        <button type="button" class="linkbtn" id="syncLogoutBtn">로그아웃</button>
+        <span class="sp"></span>
+        <button class="chunky" value="close">닫기</button>
+      </div>
+    </div>
+  </form>
+</dialog>
+<script>__BUNDLE__</script>
+</body>
+</html>

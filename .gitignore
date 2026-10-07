@@ -1,0 +1,7 @@
+node_modules/
+sync.json
+seed.json
+kamis.local.json
+*.png
+test_out.html
+dist/
