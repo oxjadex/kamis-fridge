@@ -2,6 +2,7 @@ import {
   LEVEL, P, FOODS, quote, pct, won, matchFood, substitutes, board, proteinRanking,
   regionCompare, groupLabel, priceDate, regionNames, isLoaded
 } from "./price.js";
+import { loadHistory, seasonality, percentile, forecastText, seasonBars, yearLine } from "./season.js";
 
 const REGION_KEY = "kamis-region";
 const NATIONAL_ITEMS = new Set(["9903", "4304", "4402", "9901", "4301", "4401", "9908"]);
@@ -155,10 +156,38 @@ function detail(foodId, code) {
     <h4>${dot(q.level)} ${esc(f.name)} <small>(${esc(q.unit || "")}, ${esc(groupLabel(f.group))})</small></h4>
     <p class="padvice lv-${q.level}">${advice(q)} · ${esc(verdict(q))}</p>
     <div class="pgrid">${cells}</div>
+    <div class="pseason" id="pseason" data-id="${esc(f.id)}"><p class="pnote">지난 3년 가격을 살펴보는 중…</p></div>
     ${per}
     ${subs.length ? `<h4>같은 쓰임새인데 지금 싼 것</h4>${subs.map((x) => row(x)).join("")}` : ""}
     ${q.fallback ? `<p class="pnote">이 지역 조사값이 없어 서울 가격으로 보여 줘요.</p>` : ""}
   </div>`;
+}
+
+function rankText(r) {
+  const pctile = Math.round(r.rank * 100);
+  if (pctile <= 20) return `최근 1년 중 <b>하위 ${Math.max(pctile, 1)}%</b>로 싼 편이에요`;
+  if (pctile >= 80) return `최근 1년 중 <b>상위 ${Math.max(100 - pctile, 1)}%</b>로 비싼 편이에요`;
+  return `최근 1년 중 <b>중간쯤(${pctile}%)</b>이에요`;
+}
+
+async function fillSeason(el, foodId, code) {
+  const f = FOODS.find((x) => x.id === foodId);
+  const h = await loadHistory(foodId);
+  if (!el.isConnected || el.dataset.id !== foodId) return;
+  if (!h || !h.points || h.points.length < 30) {
+    el.innerHTML = `<p class="pnote">기간별 가격 기록이 아직 부족해요.</p>`;
+    return;
+  }
+  const today = priceDate();
+  const month = Number(today.slice(5, 7));
+  const q = quote(f, code);
+  const season = seasonality(h.points);
+  const fc = forecastText(season, month);
+  const rk = percentile(h.points, q.now, today);
+  el.innerHTML = `<h4>살 타이밍 예보</h4>
+    ${fc ? `<p class="psum">${esc(fc.text)}</p>` : ""}
+    ${season && !fc.flat ? `${seasonBars(season, month)}<p class="pnote">달마다 그 앞뒤 1년 평균과 견준 값이에요 (${season.years}년치, 서울 평균). 초록이 제일 싼 달.</p>` : ""}
+    ${rk ? `<p class="psum">오늘 ${won(q.now)}은 ${rankText(rk)} · 1년 최저 ${won(rk.min)} / 최고 ${won(rk.max)}</p>${yearLine(h.points, rk.from, q.now)}` : ""}`;
 }
 
 export function createShop({ getItems, onRegionChange }) {
@@ -186,6 +215,8 @@ export function createShop({ getItems, onRegionChange }) {
     }
     if (focus) {
       body.innerHTML = detail(focus, code);
+      const ps = document.getElementById("pseason");
+      if (ps) fillSeason(ps, focus, code);
       return;
     }
     const items = getItems();

@@ -10,6 +10,7 @@ cases = {
     "board": "setTimeout(()=>{document.getElementById('btnShop').click();setTimeout(()=>document.querySelector('#shopTabs [data-tab=board]').click(),300);},1500);",
     "protein": "setTimeout(()=>{document.getElementById('btnShop').click();setTimeout(()=>document.querySelector('#shopTabs [data-tab=protein]').click(),300);},1500);",
     "town": "setTimeout(()=>{document.getElementById('btnShop').click();setTimeout(()=>document.querySelector('#shopTabs [data-tab=town]').click(),300);},1500);",
+    "detail": "setTimeout(()=>{document.getElementById('btnShop').click();setTimeout(()=>{document.querySelector('#shopTabs [data-tab=board]').click();setTimeout(()=>document.querySelector('#shopBody [data-food='+(location.hash.slice(1)||'cabbage')+']').click(),200);},300);},1500);",
     "card": "setTimeout(()=>{__fridge.openCard('계란 30구');},1800);",
 }
 only = sys.argv[1:] or list(cases)
@@ -20,5 +21,5 @@ for name in only:
     fn = f"t_{name}.html"
     open(fn, "w", encoding="utf8").write(html)
     size = "1400,900"
-    subprocess.run([chrome, "--headless=new", "--enable-unsafe-swiftshader", "--use-angle=swiftshader", "--virtual-time-budget=6000", f"--window-size={size}", f"--screenshot={os.path.abspath('s_' + name + '.png')}", f"http://localhost:8765/{fn}"], capture_output=True, timeout=120)
+    subprocess.run([chrome, "--headless=new", "--enable-unsafe-swiftshader", "--use-angle=swiftshader", "--virtual-time-budget=6000", f"--window-size={size}", f"--screenshot={os.path.abspath('s_' + name + '.png')}", f"http://localhost:8765/{fn}#{os.environ.get('FOOD','')}"], capture_output=True, timeout=120)
     print(name, "done")
