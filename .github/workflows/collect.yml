@@ -1,0 +1,33 @@
+name: collect
+on:
+  workflow_dispatch:
+    inputs:
+      day:
+        description: "YYYY-MM-DD (비우면 오늘, KST)"
+        required: false
+  schedule:
+    - cron: "30 11 * * *"
+permissions:
+  contents: write
+concurrency:
+  group: collect
+  cancel-in-progress: false
+jobs:
+  collect:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: node scripts/collect.mjs ${{ github.event.inputs.day }}
+        env:
+          KAMIS_CERT_KEY: ${{ secrets.KAMIS_CERT_KEY }}
+          KAMIS_CERT_ID: ${{ secrets.KAMIS_CERT_ID }}
+      - run: |
+          git config user.name "kamis-collector"
+          git config user.email "actions@users.noreply.github.com"
+          git add data
+          git diff --cached --quiet || git commit -m "data: $(date -u +%F) prices"
+          git pull --rebase
+          git push
